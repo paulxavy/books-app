@@ -1,0 +1,57 @@
+plugins{
+    id 'war'
+    id "io.openliberty.tools.gradle.Liberty" version "3.4.1"
+}
+
+
+def projectName = 'app-books'
+group = 'com.programacion'
+version = '1.0-SNAPSHOT'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+
+}
+
+war {
+    archiveName = projectName + '.war'
+}
+
+liberty {
+    server {
+        name = 'myServer'
+        packageLiberty {
+            packageName = "app-books"
+            include = "runnable"
+        }
+    }
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //Open liberty microprofile
+    implementation 'org.eclipse.microprofile:microprofile:5.0'
+
+    implementation 'jakarta.platform:jakarta.jakartaee-web-api:9.1.0'
+
+    //MongoDB
+    implementation group: 'org.mongodb', name: 'mongo-java-driver', version: '3.12.12'
+
+    // lombok con gradle sin plugin
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+
+}
+
+ext  {
+    liberty.server.var.'default.http.port' = '7080'
+    liberty.server.var.'project.name' = projectName
+    liberty.server.var.'app.context.root' = '/'
+}
+
+

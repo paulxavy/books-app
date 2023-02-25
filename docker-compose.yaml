@@ -1,0 +1,65 @@
+version: '3'
+services:
+  monguito:
+    image: mongo:latest
+    ports:
+      - "27017:27017" 
+
+  proxy:
+    image: traefik:v2.9.6
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    expose:
+      - 80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  books-service:
+    image: jaimesalvador/app-books:1.0.0
+    environment:
+      MONGUITO_DBNAME: books
+      MONGUITO_DBHOST: monguito
+      MONGUITO_PORT: 27017
+      AUTHOR_URL: http://proxy/app2
+      SERVER_PORT: 7080
+    depends_on:
+      - monguito
+    deploy:
+      replicas: 1
+    expose:
+      - 7080
+    labels:
+      - "traefik.http.routers.books.rule=PathPrefix(`/app1`)"
+      - "traefik.http.middlewares.books.stripprefix.prefixes=/app1"
+      - "traefik.http.routers.books.middlewares=books"
+
+  postgres-sql:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: distribuida
+    #  ports:
+    #    - 5433:5432
+
+  authors-service:
+    image: jaimesalvador/app-authors:1.0.0
+    environment:
+      PGSQL_USER: postgres
+      PGSQL_PASSWORD: postgres
+      PGSQL_DATABASE: distribuida
+      PGSQL_HOST: postgres-sql
+      PGSQL_PORT: 5432
+      SERVER_PORT: 5000
+    depends_on:
+      - postgres-sql
+    deploy:
+      replicas: 1
+    expose:
+      - 5000
+    labels:
+      - "traefik.http.routers.authors.rule=PathPrefix(`/app2`)"
+      - "traefik.http.middlewares.authors.stripprefix.prefixes=/app2"
+      - "traefik.http.routers.authors.middlewares=authors"
