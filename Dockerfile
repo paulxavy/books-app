@@ -1,4 +1,4 @@
-FROM ibm-semeru-runtimes:17
+FROM openjdk:17-jdk-slim
 
 RUN mkdir /app
 WORKDIR /app
