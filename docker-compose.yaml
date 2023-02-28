@@ -27,7 +27,7 @@ services:
     depends_on:
       - monguito
     deploy:
-      replicas: 1
+      replicas: 3
     expose:
       - 7080
     labels:
@@ -56,7 +56,7 @@ services:
     depends_on:
       - postgres-sql
     deploy:
-      replicas: 1
+      replicas: 2
     expose:
       - 5000
     labels:
